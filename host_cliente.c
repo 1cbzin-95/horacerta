@@ -52,6 +52,8 @@ int main(int argc, const char *argv[]){
     buffer[tamanho] = '\0';
     printf("Mensagem do servidor:%s\n", buffer);
 
+/* Dividir que se repete e transformar em função*/
+
     //Mandando USER-- e recebendo resp do loguin
     strcpy(buffer,"USER demo\r\n");
     send(meusocket, buffer, strlen(buffer), 0);
@@ -69,7 +71,6 @@ int main(int argc, const char *argv[]){
     //Mandando PWD-- descobrindo diretorio atual
     strcpy(buffer,"PWD\r\n");
     send(meusocket, buffer, strlen(buffer), 0);
-
     tamanho = recv(meusocket, buffer, MAXIMOMSG, 0);
     buffer[tamanho] = '\0';
     printf("O diretorio Atual é:%s\n", buffer);
@@ -77,7 +78,6 @@ int main(int argc, const char *argv[]){
     //Mandando CWD-- NavegaNDO ENTRE OS diretorios
     strcpy(buffer,"CWD /pub/example\r\n");
     send(meusocket, buffer, strlen(buffer), 0);
-
     tamanho = recv(meusocket, buffer, MAXIMOMSG, 0);
     buffer[tamanho] = '\0';
     printf("mudando para :%s\n", buffer);
@@ -85,7 +85,6 @@ int main(int argc, const char *argv[]){
     //Mandando PWD-- descobrindo diretorio atual
     strcpy(buffer,"PWD\r\n");
     send(meusocket, buffer, strlen(buffer), 0);
-
     tamanho = recv(meusocket, buffer, MAXIMOMSG, 0);
     buffer[tamanho] = '\0';
     printf("O diretorio Atual é:%s\n", buffer);
@@ -93,7 +92,6 @@ int main(int argc, const char *argv[]){
     //Mandando PWD-- descobrindo diretorio atual
     strcpy(buffer,"QUIT\r\n");
     send(meusocket, buffer, strlen(buffer), 0);
-
     tamanho = recv(meusocket, buffer, MAXIMOMSG, 0);
     buffer[tamanho] = '\0';
     printf("Mensagem do Servidor:%s\n", buffer);
