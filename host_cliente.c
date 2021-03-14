@@ -13,7 +13,9 @@ void enviarLogin(char buffer[],int tamanho,int meusocket);
 void enviarSenha(char buffer[],int tamanho,int meusocket);
 void diretorioAtual(char buffer[],int tamanho,int meusocket);
 void navEntreDiretorio(char buffer[],int tamanho,int meusocket);
+void listarArquivos(char buffer[],int tamanho,int meusocket);
 void finalizarConnection(char buffer[],int tamanho,int meusocket);
+void solicitarAbertura(char buffer[],int tamanho,int meusocket);
 
 int main(int argc, const char *argv[]){
     char dominio[501];const char *d = dominio;/* Por motivo da função  gethostbyname receber como parametro (const char *name)*/
@@ -22,7 +24,7 @@ int main(int argc, const char *argv[]){
     getchar();
     struct hostent *host_info;
     struct in_addr *address;
-    if (strlen(*&d) < 2){ //se não tiver nada fora '/0'
+    if (strlen(*&d) < 2){
         printf("Uso: %s <hostname>\n",argv[0]);
         exit(1);
     }
@@ -58,11 +60,13 @@ int main(int argc, const char *argv[]){
     diretorioAtual(buffer,tamanho,meusocket);
     navEntreDiretorio(buffer,tamanho,meusocket);
     diretorioAtual(buffer,tamanho,meusocket);
+
+    solicitarAbertura(buffer,tamanho,meusocket);
+    //listarArquivos(buffer,tamanho,meusocket);
     finalizarConnection(buffer,tamanho,meusocket);
 
     // termina o socket
     close(meusocket);
-
     return 0;
 }
 void enviarLogin(char buffer[],int tamanho,int meusocket){
@@ -79,25 +83,27 @@ void enviarLogin(char buffer[],int tamanho,int meusocket){
     send(meusocket, buffer, strlen(buffer), 0);
     tamanho = recv(meusocket, buffer, MAXIMOMSG, 0);
     buffer[tamanho] = '\0';
-    }while(strstr(buffer,"331")==NULL);//Se estiver algo e não for nullo acertou
-    printf("Mensagem do servidor para login:%s\n", buffer);
+    }while((strstr(buffer,"331"))==NULL);//Se for nullo não tem esse codigo na resposta buffer/repita
 }
 void enviarSenha(char buffer[],int tamanho,int meusocket){
     char senha[30];
     do{
-    printf("Informe o Password:");
-    scanf("%[a-zA-Z^' ']",senha);
-    getchar();
-    //Mandando PASS-- e recebendo resp da password
-    char User[50]="PASS ";
-    strcat(User,senha);
-    strcat(User,"\r\n");
-    strcpy(buffer,User);
-    send(meusocket, buffer, strlen(buffer), 0);
-    tamanho = recv(meusocket, buffer, MAXIMOMSG, 0);
-    buffer[tamanho] = '\0';
-    }while(strstr(buffer,"230")==NULL);//Se estiver algo e não for nullo acertou
-    printf("Mensagem do servidor para passord:%s\n", buffer);
+        if(strstr(buffer,"503")||strstr(buffer,"530")){
+            printf("Mensagem do servidor para passord:%s\n", buffer);
+            enviarLogin(buffer,tamanho,meusocket);
+        }
+        printf("Informe o Password:");
+        scanf("%[a-zA-Z^' ']",senha);
+        getchar();
+        //Mandando PASS-- e recebendo resp da password
+        char User[50]="PASS ";
+        strcat(User,senha);//concatenando strings
+        strcat(User,"\r\n");
+        strcpy(buffer,User);
+        send(meusocket, buffer, strlen(buffer), 0);
+        tamanho = recv(meusocket, buffer, MAXIMOMSG, 0);
+        buffer[tamanho] = '\0';
+    }while((strstr(buffer,"230"))==NULL);//Se for nullo não tem esse codigo na resposta buffer/repita
 }
 void diretorioAtual(char buffer[],int tamanho,int meusocket){
     //Mandando PWD-- descobrindo diretorio atual
@@ -123,6 +129,24 @@ void finalizarConnection(char buffer[],int tamanho,int meusocket){
     buffer[tamanho] = '\0';
     printf("Mensagem do Servidor:%s\n", buffer);
 }
+void solicitarAbertura(char buffer[],int tamanho,int meusocket){
+    strcpy(buffer,"PASV\r\n");
+    send(meusocket, buffer, strlen(buffer), 0);
+    tamanho = recv(meusocket, buffer, MAXIMOMSG, 0);
+    buffer[tamanho] = '\0';
+    printf("PASV:%s\n", buffer);                                                   // pegar os penultimos caracteres, transformar em numero
+    // if((strstr(buffer,"150 Opening ASCII mode data connection"))!=NULL){        // calcular a porta de buscar os arquivo
+                                                                                   //
+    // }
+}
+void listarArquivos(char buffer[],int tamanho,int meusocket){
+    strcpy(buffer,"LIST\r\n");
+    send(meusocket, buffer, strlen(buffer), 0);
+    tamanho = recv(meusocket, buffer, MAXIMOMSG, 0);
+    buffer[tamanho] = '\0';
+    printf("tem:%s\n", buffer);
+}
+
 /*referencias 
     https://www.gta.ufrj.br/ensino/eel878/sockets/gethostbynameman.html
 */
